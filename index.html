@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tahir Dashboard — All Repositories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 24 24" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M6 12h12M6 8h12M6 16h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <h1>Tahir Dashboard</h1>
+    </div>
+    <div class="controls">
+      <div class="user">User: <strong id="username">IT-SUPERBHYPER</strong></div>
+      <div class="control-row">
+        <input id="token" placeholder="Paste GitHub token for private repos (optional)" type="password">
+        <button id="saveToken">Save</button>
+        <button id="clearToken">Clear</button>
+      </div>
+      <div class="control-row">
+        <input id="search" placeholder="Search repos...">
+        <select id="sort">
+          <option value="updated">Last updated</option>
+          <option value="stars">Stars</option>
+          <option value="forks">Forks</option>
+          <option value="name">Name</option>
+        </select>
+        <button id="refresh">Refresh</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="overview">
+      <div id="stats" class="stats">Loading repositories...</div>
+    </section>
+
+    <section id="repoGrid" class="repo-grid"></section>
+
+    <div id="error" class="error" hidden></div>
+  </main>
+
+  <footer>
+    <small>Built for <strong>IT-SUPERBHYPER</strong> — stylish, techy, and lightweight.</small>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
