@@ -82,7 +82,7 @@ function renderRepos(repos){
       </div>
       <div class="repo-footer">
         <div style="color:var(--muted);font-size:12px">${r.watchers_count||0} watchers</div>
-          <a class="btn-visit" href="${primaryUrl}" target="_blank" rel="noopener noreferrer">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</a>
+          <a class="btn-visit" href="${primaryUrl}" target="_blank" rel="noopener noreferrer">Visit site</a>
       </div>
       <div class="repo-site" style="margin-top:10px;font-size:12px;color:var(--muted);word-break:break-all">
         <strong style="color:var(--text);font-weight:600">Site:</strong>
@@ -136,24 +136,23 @@ function buildPagesRoot(ownerRaw, repo){
 }
 
 function getPrimaryUrl(r){
-  // Only build a Pages URL when the API confirms Pages is actually enabled
-  if(r.has_pages){
-    try{
-      const ownerRaw = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
-      const repo = (r.name || '').trim();
-      const pages = buildPagesRoot(ownerRaw, repo);
-      if(pages) return pages;
-    }catch(e){/* fallthrough */}
-  }
+  // Always prefer GitHub Pages URL — has_pages from the API is unreliable
+  // (many repos have Pages live but has_pages===false)
+  try{
+    const ownerRaw = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
+    const repo = (r.name || '').trim();
+    const pages = buildPagesRoot(ownerRaw, repo);
+    if(pages) return pages;
+  }catch(e){/* fallthrough */}
 
-  // Next: use homepage if set
+  // Fallback: homepage if set
   const hp = (r.homepage || '').trim();
   if(hp){
     if(/^https?:\/\//i.test(hp)) return hp;
     return 'https://' + hp;
   }
 
-  // Default: GitHub repo URL
+  // Last resort: GitHub repo URL
   return r.html_url;
 }
 
