@@ -107,23 +107,21 @@ function escapeHtml(text){
   });
 }
 
-// Determine primary URL to open: prefer GitHub Pages (if enabled), then repo homepage, then GitHub repo
-// For Pages, open the site's index.html explicitly so users land on the live page, not the code view
+// Determine primary URL to open: construct GitHub Pages root URL first (owner.github.io/repo/), then fallback to homepage, then repo
 function getPrimaryUrl(r){
-  if(r.has_pages){
-    try{
-      const owner = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
-      const repo = (r.name || '').trim();
-      // User/org pages (owner.github.io) serve at the root
-      if(repo.toLowerCase() === `${owner.toLowerCase()}.github.io` || repo.toLowerCase() === `${owner.toLowerCase()}.github-io`){
-        return `https://${owner}.github.io/index.html`;
+  try{
+    const owner = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
+    const repo = (r.name || '').trim();
+    if(repo){
+      const repoLower = repo.toLowerCase();
+      if(repoLower === `${owner.toLowerCase()}.github.io` || repoLower === `${owner.toLowerCase()}.github-io`){
+        return `https://${owner}.github.io/`;
       }
-      // Project pages: owner.github.io/repo/index.html
       const encoded = encodeURIComponent(repo);
-      return `https://${owner}.github.io/${encoded}/index.html`;
-    }catch(e){
-      // fallback below
+      return `https://${owner}.github.io/${encoded}/`;
     }
+  }catch(e){
+    // ignore and try other fields
   }
 
   const hp = (r.homepage || '').trim();
