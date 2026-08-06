@@ -65,9 +65,12 @@ function renderRepos(repos){
   for(const r of filtered){
     const card = document.createElement('article');
     card.className = 'repo-card';
+    const primaryUrl = getPrimaryUrl(r);
+    // debug: log what URL is being used for each repo
+    console.log('[repo-link]', r.full_name || r.name, { primaryUrl, has_pages: r.has_pages, homepage: r.homepage, html_url: r.html_url });
     card.innerHTML = `
       <div class="repo-title">
-        <h3><a href="${getPrimaryUrl(r)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${r.name}</a></h3>
+        <h3><a href="${primaryUrl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${r.name}</a></h3>
         <div class="meta-pill">${r.private?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 11a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}${r.private?'<span style="font-size:12px;color:var(--muted);margin-left:6px">Private</span>':''}</div>
       </div>
       <p class="repo-desc">${r.description?escapeHtml(r.description):'<span style="color:var(--muted)">No description</span>'}</p>
@@ -110,11 +113,13 @@ function escapeHtml(text){
 // Determine primary URL to open: construct GitHub Pages root URL first (owner.github.io/repo/), then fallback to homepage, then repo
 function getPrimaryUrl(r){
   try{
-    const owner = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
+    // normalize owner to lowercase to match Pages hostname conventions
+    const ownerRaw = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
+    const owner = (ownerRaw || '').toLowerCase();
     const repo = (r.name || '').trim();
     if(repo){
       const repoLower = repo.toLowerCase();
-      if(repoLower === `${owner.toLowerCase()}.github.io` || repoLower === `${owner.toLowerCase()}.github-io`){
+      if(repoLower === `${owner}.github.io` || repoLower === `${owner}.github-io`){
         return `https://${owner}.github.io/`;
       }
       const encoded = encodeURIComponent(repo);
