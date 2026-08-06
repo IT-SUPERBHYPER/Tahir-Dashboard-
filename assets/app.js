@@ -79,7 +79,7 @@ function renderRepos(repos){
       </div>
       <div class="repo-footer">
         <div style="color:var(--muted);font-size:12px">${r.watchers_count||0} watchers</div>
-        <a class="btn-visit" href="${getPrimaryUrl(r)}" target="_blank" rel="noopener">${r.homepage? 'Visit' : 'Open'}</a>
+          <a class="btn-visit" href="${getPrimaryUrl(r)}" target="_blank" rel="noopener">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</a>
       </div>
     `;
     repoGrid.appendChild(card);
@@ -107,11 +107,22 @@ function escapeHtml(text){
   });
 }
 
-// Determine primary URL to open: prefer the repo homepage when present
+// Determine primary URL to open: prefer GitHub Pages (if enabled), then repo homepage, then GitHub repo
 function getPrimaryUrl(r){
+  // Prefer Pages site when enabled
+  if(r.has_pages){
+    try{
+      const owner = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
+      if(r.name && r.name.toLowerCase() === `${owner.toLowerCase()}.github.io`){
+        return `https://${owner}.github.io/`;
+      }
+      return `https://${owner}.github.io/${r.name}`;
+    }catch(e){
+      // fallback to other sources below
+    }
+  }
   const hp = (r.homepage || '').trim();
   if(hp){
-    // ensure protocol
     if(/^https?:\/\//i.test(hp)) return hp;
     return 'https://' + hp;
   }
