@@ -122,7 +122,7 @@ function escapeHtml(text){
   });
 }
 
-// Determine primary URL to open: construct GitHub Pages root URL first (owner.github.io/repo/), then fallback to homepage, then repo
+// Determine primary URL: GitHub Pages (only if has_pages===true), then homepage, then repo URL
 function buildPagesRoot(ownerRaw, repo){
   if(!ownerRaw || !repo) return null;
   const owner = (ownerRaw||'').toLowerCase();
@@ -136,18 +136,24 @@ function buildPagesRoot(ownerRaw, repo){
 }
 
 function getPrimaryUrl(r){
-  try{
-    const ownerRaw = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
-    const repo = (r.name || '').trim();
-    const pages = buildPagesRoot(ownerRaw, repo);
-    if(pages) return pages;
-  }catch(e){/* fallthrough */}
+  // Only build a Pages URL when the API confirms Pages is actually enabled
+  if(r.has_pages){
+    try{
+      const ownerRaw = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
+      const repo = (r.name || '').trim();
+      const pages = buildPagesRoot(ownerRaw, repo);
+      if(pages) return pages;
+    }catch(e){/* fallthrough */}
+  }
 
+  // Next: use homepage if set
   const hp = (r.homepage || '').trim();
   if(hp){
     if(/^https?:\/\//i.test(hp)) return hp;
     return 'https://' + hp;
   }
+
+  // Default: GitHub repo URL
   return r.html_url;
 }
 
