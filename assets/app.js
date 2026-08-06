@@ -108,19 +108,24 @@ function escapeHtml(text){
 }
 
 // Determine primary URL to open: prefer GitHub Pages (if enabled), then repo homepage, then GitHub repo
+// For Pages, open the site's index.html explicitly so users land on the live page, not the code view
 function getPrimaryUrl(r){
-  // Prefer Pages site when enabled
   if(r.has_pages){
     try{
       const owner = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
-      if(r.name && r.name.toLowerCase() === `${owner.toLowerCase()}.github.io`){
-        return `https://${owner}.github.io/`;
+      const repo = (r.name || '').trim();
+      // User/org pages (owner.github.io) serve at the root
+      if(repo.toLowerCase() === `${owner.toLowerCase()}.github.io` || repo.toLowerCase() === `${owner.toLowerCase()}.github-io`){
+        return `https://${owner}.github.io/index.html`;
       }
-      return `https://${owner}.github.io/${r.name}`;
+      // Project pages: owner.github.io/repo/index.html
+      const encoded = encodeURIComponent(repo);
+      return `https://${owner}.github.io/${encoded}/index.html`;
     }catch(e){
-      // fallback to other sources below
+      // fallback below
     }
   }
+
   const hp = (r.homepage || '').trim();
   if(hp){
     if(/^https?:\/\//i.test(hp)) return hp;
