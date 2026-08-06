@@ -67,7 +67,7 @@ function renderRepos(repos){
     card.className = 'repo-card';
     card.innerHTML = `
       <div class="repo-title">
-        <h3><a href="${r.html_url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${r.name}</a></h3>
+        <h3><a href="${getPrimaryUrl(r)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${r.name}</a></h3>
         <div class="meta-pill">${r.private?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 11a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}${r.private?'<span style="font-size:12px;color:var(--muted);margin-left:6px">Private</span>':''}</div>
       </div>
       <p class="repo-desc">${r.description?escapeHtml(r.description):'<span style="color:var(--muted)">No description</span>'}</p>
@@ -79,7 +79,7 @@ function renderRepos(repos){
       </div>
       <div class="repo-footer">
         <div style="color:var(--muted);font-size:12px">${r.watchers_count||0} watchers</div>
-        <a class="btn-visit" href="${r.html_url}" target="_blank" rel="noopener">Open</a>
+          <a class="btn-visit" href="${getPrimaryUrl(r)}" target="_blank" rel="noopener">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</a>
       </div>
     `;
     repoGrid.appendChild(card);
@@ -105,6 +105,28 @@ function escapeHtml(text){
     const chars = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"};
     return chars[tag] || tag;
   });
+}
+
+// Determine primary URL to open: prefer GitHub Pages (if enabled), then repo homepage, then GitHub repo
+function getPrimaryUrl(r){
+  // Prefer Pages site when enabled
+  if(r.has_pages){
+    try{
+      const owner = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
+      if(r.name && r.name.toLowerCase() === `${owner.toLowerCase()}.github.io`){
+        return `https://${owner}.github.io/`;
+      }
+      return `https://${owner}.github.io/${r.name}`;
+    }catch(e){
+      // fallback to other sources below
+    }
+  }
+  const hp = (r.homepage || '').trim();
+  if(hp){
+    if(/^https?:\/\//i.test(hp)) return hp;
+    return 'https://' + hp;
+  }
+  return r.html_url;
 }
 
 // Event bindings
