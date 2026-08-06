@@ -84,6 +84,10 @@ function renderRepos(repos){
         <div style="color:var(--muted);font-size:12px">${r.watchers_count||0} watchers</div>
           <a class="btn-visit" href="${primaryUrl}" target="_blank" rel="noopener noreferrer">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</a>
       </div>
+      <div class="repo-site" style="margin-top:10px;font-size:12px;color:var(--muted);word-break:break-all">
+        <strong style="color:var(--text);font-weight:600">Site:</strong>
+        <a class="site-link" href="${primaryUrl}" target="_blank" rel="noopener noreferrer" style="margin-left:8px;color:var(--accent-2);text-decoration:underline;">${primaryUrl}</a>
+      </div>
     `;
     repoGrid.appendChild(card);
 
