@@ -70,7 +70,7 @@ function renderRepos(repos){
     console.log('[repo-link]', r.full_name || r.name, { primaryUrl, has_pages: r.has_pages, homepage: r.homepage, html_url: r.html_url });
     card.innerHTML = `
       <div class="repo-title">
-        <h3><a href="${primaryUrl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${r.name}</a></h3>
+        <h3><a href="${primaryUrl}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none">${r.name}</a></h3>
         <div class="meta-pill">${r.private?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 11a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}${r.private?'<span style="font-size:12px;color:var(--muted);margin-left:6px">Private</span>':''}</div>
       </div>
       <p class="repo-desc">${r.description?escapeHtml(r.description):'<span style="color:var(--muted)">No description</span>'}</p>
@@ -82,19 +82,19 @@ function renderRepos(repos){
       </div>
       <div class="repo-footer">
         <div style="color:var(--muted);font-size:12px">${r.watchers_count||0} watchers</div>
-          <button class="btn-visit" data-url="${primaryUrl}">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</button>
+          <a class="btn-visit" href="${primaryUrl}" target="_blank" rel="noopener noreferrer">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</a>
       </div>
     `;
     repoGrid.appendChild(card);
-  }
 
-  // Attach click handlers that always open the constructed Pages/root URL (bypass href inconsistencies)
-  document.querySelectorAll('.btn-visit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const u = btn.getAttribute('data-url');
-      if(u){ window.open(u, '_blank', 'noopener'); }
-    });
-  });
+    // ensure the anchor always opens the constructed URL even if some extension modifies href
+    try{
+      const anchor = card.querySelector('.btn-visit');
+      if(anchor){
+        anchor.addEventListener('click', (ev)=>{ ev.preventDefault(); const u = anchor.getAttribute('href'); if(u) window.open(u, '_blank','noopener'); });
+      }
+    }catch(e){/* ignore */}
+  }
 }
 
 function timeAgo(dt){
@@ -119,23 +119,25 @@ function escapeHtml(text){
 }
 
 // Determine primary URL to open: construct GitHub Pages root URL first (owner.github.io/repo/), then fallback to homepage, then repo
+function buildPagesRoot(ownerRaw, repo){
+  if(!ownerRaw || !repo) return null;
+  const owner = (ownerRaw||'').toLowerCase();
+  const repoTrim = (repo||'').trim();
+  if(!repoTrim) return null;
+  const repoLower = repoTrim.toLowerCase();
+  if(repoLower === `${owner}.github.io` || repoLower === `${owner}.github-io`){
+    return `https://${owner}.github.io/`;
+  }
+  return `https://${owner}.github.io/${encodeURIComponent(repoTrim)}/`;
+}
+
 function getPrimaryUrl(r){
   try{
-    // normalize owner to lowercase to match Pages hostname conventions
     const ownerRaw = (r.owner && r.owner.login) ? r.owner.login : (r.full_name ? r.full_name.split('/')[0] : username);
-    const owner = (ownerRaw || '').toLowerCase();
     const repo = (r.name || '').trim();
-    if(repo){
-      const repoLower = repo.toLowerCase();
-      if(repoLower === `${owner}.github.io` || repoLower === `${owner}.github-io`){
-        return `https://${owner}.github.io/`;
-      }
-      const encoded = encodeURIComponent(repo);
-      return `https://${owner}.github.io/${encoded}/`;
-    }
-  }catch(e){
-    // ignore and try other fields
-  }
+    const pages = buildPagesRoot(ownerRaw, repo);
+    if(pages) return pages;
+  }catch(e){/* fallthrough */}
 
   const hp = (r.homepage || '').trim();
   if(hp){
