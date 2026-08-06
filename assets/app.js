@@ -82,11 +82,19 @@ function renderRepos(repos){
       </div>
       <div class="repo-footer">
         <div style="color:var(--muted);font-size:12px">${r.watchers_count||0} watchers</div>
-          <a class="btn-visit" href="${getPrimaryUrl(r)}" target="_blank" rel="noopener">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</a>
+          <button class="btn-visit" data-url="${primaryUrl}">${r.has_pages ? 'Visit site' : (r.homepage ? 'Visit' : 'Open')}</button>
       </div>
     `;
     repoGrid.appendChild(card);
   }
+
+  // Attach click handlers that always open the constructed Pages/root URL (bypass href inconsistencies)
+  document.querySelectorAll('.btn-visit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const u = btn.getAttribute('data-url');
+      if(u){ window.open(u, '_blank', 'noopener'); }
+    });
+  });
 }
 
 function timeAgo(dt){
